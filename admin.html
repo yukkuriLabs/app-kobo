@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- ============================================================
+     Operator administration console for 「アプリ工房」.
+     Change ADMIN_PASSWORD below before publishing.
+     ============================================================ -->
+<script>
+// Change this password before you deploy this page.
+const ADMIN_PASSWORD = 'kintai-operator';
+</script>
+<title>オペレーター管理 | アプリ工房</title>
+<style>
+  :root {
+    --primary: #1d4ed8;
+    --primary-dark: #1e40af;
+    --primary-light: #eff4ff;
+    --ink: #16202e;
+    --ink-soft: #4b5768;
+    --line: #dfe4ec;
+    --bg: #f6f8fb;
+    --card: #fff;
+    --accent: #0f766e;
+    --danger: #b91c1c;
+    --radius: 12px;
+    --shadow: 0 6px 24px rgba(22,32,46,.08);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink); line-height: 1.7; font-size: 15px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN",
+                 "Hiragino Sans", "Yu Gothic UI", Meiryo, sans-serif;
+  }
+  a { color: var(--primary); }
+  .container { width: min(1080px, 94%); margin: 0 auto; }
+
+  header.site {
+    background: #101828; color: #e2e8f0; position: sticky; top: 0; z-index: 20;
+    border-bottom: 3px solid var(--primary);
+  }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; flex-wrap: wrap; }
+  .brand { font-weight: 700; font-size: 17px; color: #fff; text-decoration: none; }
+  .brand span { font-size: 12px; font-weight: 600; color: #93c5fd; margin-left: 8px; }
+  .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .header-actions a, .header-actions button { font-size: 13px; }
+
+  .btn {
+    display: inline-block; border: 0; cursor: pointer; text-decoration: none;
+    font-weight: 700; font-size: 14px; border-radius: 8px; padding: 9px 18px; font-family: inherit;
+    transition: background .12s ease, transform .12s ease;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); }
+  .btn-primary:disabled { background: #a9b6cc; cursor: not-allowed; }
+  .btn-ghost { background: #fff; color: var(--primary); border: 1px solid var(--primary); }
+  .btn-ghost:hover { background: var(--primary-light); }
+  .btn-danger { background: #fff; color: var(--danger); border: 1px solid #fecaca; }
+  .btn-sm { padding: 6px 12px; font-size: 12.5px; }
+  .btn-block { display: block; width: 100%; text-align: center; }
+
+  main { padding: 32px 0 64px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 24px; margin-bottom: 24px;
+  }
+  .card h2 { margin: 0 0 6px; font-size: 18px; }
+  .card .sub { margin: 0 0 18px; font-size: 13px; color: var(--ink-soft); }
+
+  .banner { border-radius: 8px; padding: 11px 15px; font-size: 13.5px; margin-bottom: 18px; display: none; }
+  .banner.error { display: block; background: #fef2f2; border: 1px solid #fecaca; color: var(--danger); }
+  .banner.warn { display: block; background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+  .banner.ok { display: block; background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+  .banner code { background: rgba(0,0,0,.06); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
+
+  /* login */
+  #loginView { max-width: 420px; margin: 48px auto; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .field label { font-size: 13.5px; font-weight: 700; }
+  .field input, .field select, .field textarea {
+    font-family: inherit; font-size: 14.5px; padding: 9px 12px;
+    border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink); width: 100%;
+  }
+  .field textarea { min-height: 96px; resize: vertical; font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid #c7d6fe; border-color: var(--primary); }
+  .field .hint { font-size: 12px; color: var(--ink-soft); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end; }
+  @media (max-width: 680px) { .form-row, .form-row-3 { grid-template-columns: 1fr; } }
+  .inline-check { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: 4px; }
+
+  /* table */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  table.apps { width: 100%; border-collapse: collapse; min-width: 760px; background: #fff; }
+  table.apps th, table.apps td { padding: 11px 13px; font-size: 13.5px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  table.apps thead th { background: #f0f3f8; font-size: 12.5px; white-space: nowrap; }
+  table.apps tbody tr:last-child td { border-bottom: 0; }
+  table.apps tr.active { background: var(--primary-light); }
+  .status-chip { display: inline-block; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 3px 11px; background: #eef2f7; color: var(--ink-soft); white-space: nowrap; }
+  .status-chip.issued { background: #ecfdf5; color: var(--accent); }
+  .empty { text-align: center; color: var(--ink-soft); padding: 30px 0; font-size: 13.5px; }
+  .key-cell { font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; word-break: break-all; max-width: 220px; }
+
+  /* key box */
+  .keybox {
+    background: #0f172a; color: #d1fae5; border-radius: 10px; padding: 16px;
+    font-family: ui-monospace, Consolas, monospace; font-size: 13px; word-break: break-all;
+    display: none; white-space: pre-wrap;
+  }
+  .key-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .key-meta { font-size: 13px; color: var(--ink-soft); margin-top: 10px; }
+  .key-meta b { color: var(--ink); }
+
+  footer { text-align: center; font-size: 12.5px; color: var(--ink-soft); padding: 24px 0 40px; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
+    background: #101828; color: #fff; padding: 11px 22px; border-radius: 999px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: all .25s ease; z-index: 200;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="container header-inner">
+    <a class="brand" href="index.html">アプリ工房<span>オペレーター管理</span></a>
+    <div class="header-actions">
+      <a class="btn btn-ghost btn-sm" href="index.html#applications">申込一覧（トップ側）</a>
+      <button class="btn btn-danger btn-sm" id="logoutBtn" type="button">ログアウト</button>
+    </div>
+  </div>
+</header>
+
+<!-- ================= Login ================= -->
+<div id="loginView" class="container">
+  <div class="card">
+    <h2>オペレーターログイン</h2>
+    <p class="sub">このページは運営者専用です。管理者パスワードを入力してください。</p>
+    <div class="banner error" id="loginError" style="display:none;"></div>
+    <form id="loginForm">
+      <div class="field">
+        <label for="pw">パスワード</label>
+        <input type="password" id="pw" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">ログイン</button>
+    </form>
+    <p class="sub" style="margin-top:16px;">
+      パスワードは <code>admin.html</code> 冒頭の <code>ADMIN_PASSWORD</code> で変更できます。
+    </p>
+  </div>
+</div>
+
+<!-- ================= Admin ================= -->
+<main id="adminView" class="container" style="display:none;">
+
+  <div class="banner error" id="cryptoBanner" style="display:none;"></div>
+  <div class="banner warn" id="keyBanner" style="display:none;">
+    秘密鍵が読み込まれていません。<b>site/data/license_private.pem</b> を読み込んでください。
+    WebCrypto を使えない環境の場合は、<code>node tools/issue-license.mjs</code> で発行してください。
+  </div>
+  <div class="banner ok" id="okBanner" style="display:none;"></div>
+
+  <!-- Applications -->
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">
+      <div>
+        <h2>申込一覧</h2>
+        <p class="sub">この端末の localStorage（キー <code>kintai_applications</code>）に保存された申し込みです。</p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost btn-sm" id="refreshBtn" type="button">更新</button>
+        <button class="btn btn-primary btn-sm" id="newIssueBtn" type="button">会社作成（ライセンス発行）</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="apps">
+        <thead>
+          <tr>
+            <th>申込番号</th><th>アプリ</th><th>会社名</th><th>担当者</th><th>申込日時</th><th>人数規模</th><th>状態</th><th>発行キー</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="appsBody"></tbody>
+      </table>
+      <div class="empty" id="appsEmpty" style="display:none;">
+        申込はまだありません。「会社作成（ライセンス発行）」から直接発行できます。
+      </div>
+    </div>
+  </section>
+
+  <!-- Private key -->
+  <section class="card" id="keyCard">
+    <h2>秘密鍵の読み込み</h2>
+    <p class="sub">
+      ページに秘密鍵は埋め込みません。<code>site/data/license_private.pem</code> を
+      ファイルから読み込むか、テキストエリアに貼り付けてください。
+    </p>
+    <div class="form-row">
+      <div class="field">
+        <label for="keyFile">ファイルから読み込む（.pem）</label>
+        <input type="file" id="keyFile" accept=".pem,.txt,text/plain">
+      </div>
+      <div class="field">
+        <label for="keyKeep">セッション中の保持</label>
+        <label class="inline-check" style="margin:0;">
+          <input type="checkbox" id="keyKeep">
+          sessionStorage に保存する（タブを閉じるまで有効）
+        </label>
+      </div>
+    </div>
+    <div class="field">
+      <label for="keyText">または秘密鍵を貼り付ける</label>
+      <textarea id="keyText" placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----" spellcheck="false"></textarea>
+      <span class="hint" id="keyStatus">未読込 — 発行はできません。</span>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="loadKeyBtn" type="button">貼り付けた鍵を読み込む</button>
+  </section>
+
+  <!-- Issue -->
+  <section class="card" id="issueCard">
+    <h2>ライセンス発行</h2>
+    <p class="sub">
+      形式: <code>KI1.&lt;base64url(payload)&gt;.&lt;base64url(signature)&gt;</code>
+      （ペイロード文字列に対する RSA-SHA256 / PKCS#1 v1.5 署名）
+    </p>
+    <form id="issueForm">
+      <div class="form-row-3">
+        <div class="field">
+          <label for="issCompany">会社名<span style="color:#dc2626;">*</span></label>
+          <input type="text" id="issCompany" list="companyList" required placeholder="株式会社テスト">
+          <datalist id="companyList"></datalist>
+        </div>
+        <div class="field">
+          <label for="issExpiry">有効期限（空欄＝無期限）</label>
+          <input type="text" id="issExpiry"
+                 placeholder="YYYY-MM-DD（空欄＝無期限）">
+          <span class="hint">空欄のまま発行すると無期限になります。期限を設ける場合は YYYY-MM-DD で入力してください。</span>
+        </div>
+        <div class="field">
+          <button class="btn btn-primary" id="issueBtn" type="submit" disabled>発行</button>
+        </div>
+      </div>
+      <p class="sub" id="issueHint" style="margin-top:10px;">site/data/license_private.pem を読み込んでください</p>
+    </form>
+
+    <div class="keybox" id="keyResult"></div>
+    <div class="key-actions" id="keyActions" style="display:none;">
+      <button class="btn btn-ghost btn-sm" id="copyKeyBtn" type="button">ライセンスキーをコピー</button>
+      <button class="btn btn-ghost btn-sm" id="verifyKeyBtn" type="button">このキーを検証</button>
+    </div>
+    <div class="key-meta" id="keyMeta" style="display:none;"></div>
+  </section>
+
+  <footer>
+    アプリ工房 オペレーター管理 ／ 申込データはこの端末の localStorage にのみ保存されます。
+  </footer>
+</main>
+
+<div id="toast"></div>
+
+<script>
+/* =====================================================================
+   Shared storage helpers (same shape as index.html)
+   ===================================================================== */
+const STORAGE_KEY = 'kintai_applications';
+const SESSION_KEY_PRIVATE = 'kintai_license_private';
+const SESSION_KEY_AUTH = 'kintai_admin_auth';
+
+function loadApplications() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch (e) { return []; }
+}
+function saveApplications(list) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return String(iso);
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+         ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+function copyText(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise((resolve, reject) => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy') ? resolve() : reject(new Error('copy failed')); }
+    catch (e) { reject(e); }
+    finally { document.body.removeChild(ta); }
+  });
+}
+
+/* =====================================================================
+   base64url helpers (WebCrypto uses atob/btoa)
+   ===================================================================== */
+function b64urlToB64(s) {
+  let t = String(s).replace(/-/g, '+').replace(/_/g, '/');
+  while (t.length % 4 !== 0) t += '=';
+  return t;
+}
+function b64ToB64url(s) {
+  return String(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function utf8ToBase64url(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return b64ToB64url(btoa(bin));
+}
+function base64urlToUtf8(s) {
+  const bin = atob(b64urlToB64(s));
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+/* =====================================================================
+   Password gate (sessionStorage)
+   ===================================================================== */
+function isLoggedIn() {
+  try { return sessionStorage.getItem(SESSION_KEY_AUTH) === '1'; } catch (e) { return false; }
+}
+function showLogin() {
+  document.getElementById('loginView').style.display = '';
+  document.getElementById('adminView').style.display = 'none';
+  document.getElementById('logoutBtn').style.display = 'none';
+}
+function showAdmin() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('adminView').style.display = '';
+  document.getElementById('logoutBtn').style.display = '';
+  initAdmin();
+}
+document.getElementById('loginForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const err = document.getElementById('loginError');
+  if (document.getElementById('pw').value === ADMIN_PASSWORD) {
+    try { sessionStorage.setItem(SESSION_KEY_AUTH, '1'); } catch (ex) {}
+    err.style.display = 'none';
+    showAdmin();
+  } else {
+    err.textContent = 'パスワードが正しくありません。';
+    err.style.display = 'block';
+  }
+});
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  try { sessionStorage.removeItem(SESSION_KEY_AUTH); } catch (e) {}
+  showLogin();
+});
+
+/* =====================================================================
+   Applications list
+   ===================================================================== */
+let selectedNo = null;
+
+function renderApplications() {
+  const body = document.getElementById('appsBody');
+  const empty = document.getElementById('appsEmpty');
+  const list = loadApplications();
+  if (!list.length) {
+    body.innerHTML = '';
+    empty.style.display = '';
+    document.getElementById('companyList').innerHTML = '';
+    return;
+  }
+  empty.style.display = 'none';
+  body.innerHTML = list.slice().reverse().map(a => {
+    const issued = a.status === 'キー発行済み';
+    const key = a.licenseKey
+      ? '<span class="key-cell">' + escapeHtml(a.licenseKey) + '</span>'
+      : '—';
+    return '<tr class="' + (a.no === selectedNo ? 'active' : '') + '">' +
+      '<td style="font-family:ui-monospace,Consolas,monospace;white-space:nowrap;">' + escapeHtml(a.no) + '</td>' +
+      '<td>' + escapeHtml(a.appName || '勤怠管理') + '</td>' +
+      '<td>' + escapeHtml(a.company) + '</td>' +
+      '<td>' + escapeHtml(a.name) + '<br><span style="font-size:12px;color:#4b5768;">' + escapeHtml(a.email || '') + '</span></td>' +
+      '<td style="white-space:nowrap;">' + escapeHtml(formatDate(a.at)) + '</td>' +
+      '<td style="white-space:nowrap;">' + escapeHtml(a.size || '—') + '</td>' +
+      '<td><span class="status-chip' + (issued ? ' issued' : '') + '">' + escapeHtml(a.status || '未処理') + '</span></td>' +
+      '<td>' + key + '</td>' +
+      '<td><button class="btn btn-ghost btn-sm" data-select="' + escapeHtml(a.no) + '" type="button">選択</button></td>' +
+      '</tr>';
+  }).join('');
+
+  const datalist = document.getElementById('companyList');
+  const seen = {};
+  datalist.innerHTML = list
+    .filter(a => a && a.company && !seen[a.company] && (seen[a.company] = 1))
+    .map(a => '<option value="' + escapeHtml(a.company) + '"></option>').join('');
+}
+
+document.getElementById('appsBody').addEventListener('click', function (e) {
+  const btn = e.target.closest('button[data-select]');
+  if (!btn) return;
+  selectedNo = btn.getAttribute('data-select');
+  const app = loadApplications().find(a => a && a.no === selectedNo);
+  if (app) document.getElementById('issCompany').value = app.company;
+  renderApplications();
+  document.getElementById('issueCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+document.getElementById('refreshBtn').addEventListener('click', renderApplications);
+document.getElementById('newIssueBtn').addEventListener('click', () => {
+  selectedNo = null;
+  document.getElementById('issCompany').value = '';
+  renderApplications();
+  document.getElementById('issueCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('issCompany').focus();
+});
+
+/* =====================================================================
+   Private key handling
+   ===================================================================== */
+let privateKeyObj = null;   // CryptoKey
+let privatePemText = null;  // raw PEM text
+
+function pemToDer(pem) {
+  const m = String(pem).match(/-----BEGIN [^-]+-----([\s\S]+?)-----END [^-]+-----/);
+  if (!m) return null;
+  const b64 = m[1].replace(/\s+/g, '');
+  const bin = atob(b64);
+  const buf = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  return buf.buffer;
+}
+
+function setKeyStatus(text, ok) {
+  const el = document.getElementById('keyStatus');
+  el.textContent = text;
+  el.style.color = ok ? '#0f766e' : '#4b5768';
+}
+
+function updateIssueAvailability() {
+  const subtleOk = !!(window.crypto && crypto.subtle);
+  const hasKey = !!privateKeyObj;
+  const btn = document.getElementById('issueBtn');
+  const hint = document.getElementById('issueHint');
+  const banner = document.getElementById('keyBanner');
+
+  if (!subtleOk) {
+    btn.disabled = true;
+    hint.textContent = 'WebCrypto (crypto.subtle) が利用できません。';
+    banner.style.display = 'none';
+    return;
+  }
+  btn.disabled = !hasKey;
+  if (hasKey) {
+    hint.textContent = '秘密鍵を読み込み済みです。発行できます。';
+    banner.style.display = 'none';
+  } else {
+    hint.textContent = 'site/data/license_private.pem を読み込んでください';
+    banner.style.display = '';
+  }
+}
+
+async function importPrivateKey(pem) {
+  const der = pemToDer(pem);
+  if (!der) throw new Error('PEMとして解析できません。');
+  return await crypto.subtle.importKey(
+    'pkcs8', der, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']
+  );
+}
+
+async function loadKeyFromText(pem, persist) {
+  const text = String(pem || '').trim();
+  if (!text) { setKeyStatus('秘密鍵が空です。', false); return false; }
+  try {
+    privateKeyObj = await importPrivateKey(text);
+    privatePemText = text;
+    setKeyStatus('読み込み済み — 発行できます。', true);
+    if (persist) {
+      try { sessionStorage.setItem(SESSION_KEY_PRIVATE, text); } catch (e) {}
+    } else {
+      try { sessionStorage.removeItem(SESSION_KEY_PRIVATE); } catch (e) {}
+    }
+    document.getElementById('keyKeep').checked = !!persist;
+    updateIssueAvailability();
+    return true;
+  } catch (err) {
+    privateKeyObj = null;
+    privatePemText = null;
+    setKeyStatus('読み込みに失敗しました: ' + err.message, false);
+    updateIssueAvailability();
+    return false;
+  }
+}
+
+document.getElementById('loadKeyBtn').addEventListener('click', () => {
+  loadKeyFromText(document.getElementById('keyText').value,
+                  document.getElementById('keyKeep').checked);
+});
+document.getElementById('keyFile').addEventListener('change', function () {
+  const file = this.files && this.files[0];
+  if (!file) return;
+  file.text().then(txt => {
+    document.getElementById('keyText').value = txt;
+    return loadKeyFromText(txt, document.getElementById('keyKeep').checked);
+  }).then(ok => {
+    if (ok) showToast('秘密鍵を読み込みました');
+  }).catch(err => {
+    setKeyStatus('ファイルの読み込みに失敗しました: ' + err.message, false);
+    updateIssueAvailability();
+  });
+});
+document.getElementById('keyKeep').addEventListener('change', function () {
+  if (!privatePemText) return;
+  try {
+    if (this.checked) sessionStorage.setItem(SESSION_KEY_PRIVATE, privatePemText);
+    else sessionStorage.removeItem(SESSION_KEY_PRIVATE);
+  } catch (e) {}
+});
+
+/* =====================================================================
+   License issuing
+   ===================================================================== */
+function randomHex(len) {
+  const bytes = new Uint8Array(Math.ceil(len / 2));
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, len);
+}
+function todayIso() {
+  const d = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+function todayIsoOf(d) {
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
+/* 有効期限入力（空欄 = 無期限 → null） */
+function parseExpiryInput(text) {
+  const t = String(text || '').trim();
+  if (!t) return null;                       /* 空欄 = 無期限 */
+  const m = t.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (m) {
+    const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
+    const date = new Date(y, mo - 1, d);
+    if (date.getFullYear() !== y || date.getMonth() !== mo - 1 || date.getDate() !== d) return undefined;
+    return todayIsoOf(date);
+  }
+  return undefined; /* 解析失敗（null と区別するため undefined） */
+}
+
+async function signPayloadSegment(segment) {
+  const data = new TextEncoder().encode(segment);
+  const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', privateKeyObj, data);
+  const bytes = new Uint8Array(sig);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return b64ToB64url(btoa(bin));
+}
+
+let lastIssuedKey = null;
+
+document.getElementById('issueForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const okBanner = document.getElementById('okBanner');
+  okBanner.style.display = 'none';
+
+  if (!(window.crypto && crypto.subtle)) {
+    showToast('WebCrypto が利用できません');
+    return;
+  }
+  if (!privateKeyObj) {
+    showToast('秘密鍵を読み込んでください');
+    return;
+  }
+  const company = document.getElementById('issCompany').value.trim();
+  if (!company) { showToast('会社名を入力してください'); return; }
+
+  const expiryInput = document.getElementById('issExpiry').value.trim();
+  const expiry = parseExpiryInput(expiryInput);
+  if (expiry === undefined) {
+    showToast('有効期限は YYYY-MM-DD 形式で入力してください（空欄＝無期限）');
+    return;
+  }
+  const payloadObj = { c: company, i: todayIso(), e: expiry, id: randomHex(16) };
+  const payload = JSON.stringify(payloadObj);
+
+  try {
+    const segment = utf8ToBase64url(payload);
+    const signature = await signPayloadSegment(segment);
+    const license = 'KI1.' + segment + '.' + signature;
+    lastIssuedKey = license;
+
+    const box = document.getElementById('keyResult');
+    box.textContent = license;
+    box.style.display = 'block';
+    document.getElementById('keyActions').style.display = 'flex';
+
+    const meta = document.getElementById('keyMeta');
+    meta.style.display = 'block';
+    meta.innerHTML =
+      '会社名: <b>' + escapeHtml(company) + '</b> ／ 発行日: <b>' + payloadObj.i + '</b> ／ ' +
+      '有効期限: <b>' + (payloadObj.e ? payloadObj.e : '無期限') + '</b> ／ ID: <b>' + payloadObj.id + '</b>';
+
+    /* Update matching application record */
+    const list = loadApplications();
+    let target = selectedNo ? list.find(a => a && a.no === selectedNo) : null;
+    if (!target) target = list.find(a => a && a.company === company);
+    if (target) {
+      target.status = 'キー発行済み';
+      target.licenseKey = license;
+      target.issuedAt = new Date().toISOString();
+      target.expiry = payloadObj.e;
+      saveApplications(list);
+      selectedNo = target.no;
+    }
+    renderApplications();
+
+    okBanner.innerHTML = 'ライセンスキーを発行しました。' +
+      (target ? ' 申込 <b>' + escapeHtml(target.no) + '</b> を「キー発行済み」に更新しました。'
+              : ' 対象の申込は見つからなかったため、一覧には記録されていません。');
+    okBanner.style.display = 'block';
+    showToast('発行しました');
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (err) {
+    okBanner.className = 'banner error';
+    okBanner.textContent = '発行に失敗しました: ' + err.message;
+    okBanner.style.display = 'block';
+  }
+});
+
+document.getElementById('copyKeyBtn').addEventListener('click', () => {
+  if (!lastIssuedKey) return;
+  copyText(lastIssuedKey)
+    .then(() => showToast('ライセンスキーをコピーしました'))
+    .catch(() => showToast('コピーできませんでした'));
+});
+
+/* Verify the issued key against the bundled public key (data/license_public.pem). */
+document.getElementById('verifyKeyBtn').addEventListener('click', async () => {
+  if (!lastIssuedKey) return;
+  const meta = document.getElementById('keyMeta');
+  try {
+    const res = await fetch('data/license_public.pem');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const pubPem = await res.text();
+    const der = pemToDer(pubPem);
+    const key = await crypto.subtle.importKey(
+      'spki', der, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']
+    );
+    const parts = lastIssuedKey.split('.');
+    if (parts.length !== 3 || parts[0] !== 'KI1') throw new Error('形式が不正です');
+    const data = new TextEncoder().encode(parts[1]);
+    const sigBin = atob(b64urlToB64(parts[2]));
+    const sig = new Uint8Array(sigBin.length);
+    for (let i = 0; i < sigBin.length; i++) sig[i] = sigBin.charCodeAt(i);
+    const ok = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, sig, data);
+    meta.innerHTML += ok ? ' ／ <b style="color:#0f766e;">検証OK</b>'
+                         : ' ／ <b style="color:#b91c1c;">検証NG</b>';
+    showToast(ok ? '署名の検証に成功しました' : '署名の検証に失敗しました');
+  } catch (err) {
+    showToast('検証できませんでした（' + err.message + '）');
+  }
+});
+
+/* =====================================================================
+   Init
+   ===================================================================== */
+let inited = false;
+function initAdmin() {
+  if (inited) { renderApplications(); return; }
+  inited = true;
+
+  /* WebCrypto availability */
+  if (!(window.crypto && crypto.subtle)) {
+    const b = document.getElementById('cryptoBanner');
+    b.innerHTML =
+      'この環境では WebCrypto（crypto.subtle）が利用できないため、ブラウザからの発行はできません。' +
+      '（file:// で開いた場合など）<br>代わりにコマンドラインで発行してください: ' +
+      '<code>node tools/issue-license.mjs --company "株式会社テスト" --years 0</code>（--years 0 = 無期限） ' +
+      '／ 検証: <code>node tools/issue-license.mjs --verify "KI1...."</code>';
+    b.style.display = 'block';
+    document.getElementById('issueHint').textContent = 'WebCrypto が利用できないため、CLI で発行してください。';
+    document.getElementById('issueBtn').disabled = true;
+    document.getElementById('keyBanner').style.display = 'none';
+    renderApplications();
+    return;
+  }
+
+  /* Restore private key from sessionStorage if the operator chose to keep it */
+  let stored = null;
+  try { stored = sessionStorage.getItem(SESSION_KEY_PRIVATE); } catch (e) {}
+  if (stored) {
+    document.getElementById('keyText').value = stored;
+    loadKeyFromText(stored, true).then(ok => {
+      if (ok) showToast('sessionStorage から秘密鍵を復元しました');
+    });
+  } else {
+    setKeyStatus('未読込 — 発行はできません。', false);
+    updateIssueAvailability();
+  }
+
+  renderApplications();
+}
+
+if (isLoggedIn()) showAdmin(); else showLogin();
+</script>
+</body>
+</html>

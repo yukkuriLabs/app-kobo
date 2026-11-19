@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- ============================================================
+     Configuration — change these values as needed.
+     CONTACT_EMAIL : destination of the contact / application mail.
+     ============================================================ -->
+<script>
+const CONTACT_EMAIL = 'info@example.com';
+</script>
+<title>アプリ工房 | 無料で使えるデスクトップアプリの公開ポータル</title>
+<meta name="description" content="個人開発の業務用デスクトップアプリをまとめた公開ポータル「アプリ工房」。勤怠管理をはじめ、無料で使えるデスクトップアプリを順次公開しています。">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="container header-inner">
+    <a class="brand" href="#">アプリ工房<span>APPS</span></a>
+    <button class="nav-toggle" id="navToggle" aria-label="メニュー">☰</button>
+    <nav class="site" id="navMenu">
+      <a href="#apps">アプリ一覧</a>
+      <a href="#coming">今後のアプリ</a>
+      <a href="#contact">お問い合わせ</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ================= Portal ================= -->
+<div id="portal-view">
+  <div class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="eyebrow">無料で使えるデスクトップアプリ</span>
+        <h1>業務を、もっとラクに。</h1>
+        <p class="lead">
+          アプリ工房は、日々の業務を軽くするデスクトップアプリを無料で公開しているポータルです。
+          気になったアプリから詳細ページをのぞいて、そのまま申し込めます。
+        </p>
+        <div class="hero-cta">
+          <a href="#apps" class="btn btn-primary">アプリを見る</a>
+          <a href="#contact" class="btn btn-ghost">お問い合わせ</a>
+        </div>
+        <p class="hero-note"><strong>すべて無料</strong> ／ データは端末内に保存 ／ 申込は各アプリのページから</p>
+      </div>
+      <div class="hero-panel">
+        <h3>アプリ工房の特徴</h3>
+        <div class="stat-row"><span>提供方法</span><b>すべて無料</b></div>
+        <div class="stat-row"><span>対応環境</span><b>Windows 10 / 11</b></div>
+        <div class="stat-row"><span>データ管理</span><b>端末内に保存</b></div>
+        <div class="stat-row"><span>ライセンス</span><b>正規の利用確認</b></div>
+        <div class="pill-list">
+          <span class="pill">打刻</span><span class="pill">月次集計</span>
+          <span class="pill">CSV・Excel出力</span><span class="pill">バックアップ</span>
+          <span class="pill">権限管理</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="block" id="apps">
+    <div class="container">
+      <div class="sec-head">
+        <h2>アプリ一覧</h2>
+        <p>公開中のアプリの詳細ページから、そのままお申し込みいただけます。</p>
+      </div>
+      <div class="app-grid" id="appGrid">
+        <!-- data/apps.js の APPS から描画されます -->
+      </div>
+    </div>
+  </section>
+
+  <section class="block alt" id="coming">
+    <div class="container">
+      <div class="sec-head">
+        <h2>今後のアプリ</h2>
+        <p>新作は順次このページに追加予定です。</p>
+      </div>
+      <div class="soon-box">
+        <div class="icon">🛠</div>
+        <h3>順次追加予定</h3>
+        <p>
+          これから公開するアプリも、この一覧に並びます。公開までのお問い合わせや要望は、
+          下のお問い合わせフォームからお気軽にどうぞ。
+        </p>
+        <a href="#contact" class="btn btn-ghost btn-sm">お問い合わせへ</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="contact">
+    <div class="container">
+      <div class="sec-head">
+        <h2>お問い合わせ</h2>
+        <p>アプリのご要望・ご質問はこちらから。1営業日以内を目安にご連絡します。</p>
+      </div>
+      <div class="contact-card">
+        <p>下のアドレス宛にメールをお送りいただくか、ボタンからメールアプリを開いてください。</p>
+        <div class="mail" id="contactMail">info@example.com</div>
+        <div class="hero-cta" style="justify-content:center;">
+          <a class="btn btn-primary" id="contactMailto" href="#">メールアプリで送信</a>
+          <a class="btn btn-ghost" href="#apps">アプリ一覧へ戻る</a>
+        </div>
+        <p style="font-size:13px;margin-top:16px;">
+          各アプリの申込フォームは、アプリ詳細ページにあります。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site">
+    <div class="container">
+      <div class="foot-top">
+        <div>
+          <div class="brand-f">アプリ工房</div>
+          <div style="font-size:13px;margin-top:6px;">無料で使えるデスクトップアプリの公開ポータル</div>
+        </div>
+        <div class="foot-links">
+          <a href="#apps">アプリ一覧</a>
+          <a href="#coming">今後のアプリ</a>
+          <a href="#contact">お問い合わせ</a>
+        </div>
+      </div>
+      <div class="copy">© 2026 アプリ工房. All rights reserved.</div>
+    </div>
+  </footer>
+</div>
+
+<!-- ================= Applications (hidden hash view) ================= -->
+<div id="applications-view">
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+      <div>
+        <h2 style="margin:0 0 4px;font-size:24px;">申込一覧</h2>
+        <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">この端末の localStorage に保存された申し込みです。</p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost btn-sm" id="appsRefresh">更新</button>
+        <a class="btn btn-primary btn-sm" href="#">トップへ戻る</a>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="apps">
+        <thead>
+          <tr>
+            <th>申込番号</th><th>アプリ</th><th>会社名</th><th>担当者</th><th>申込日時</th><th>人数規模</th><th>状態</th><th>発行キー</th>
+          </tr>
+        </thead>
+        <tbody id="appsBody"></tbody>
+      </table>
+      <div class="empty" id="appsEmpty" style="display:none;">申込データはまだありません。</div>
+    </div>
+    <p style="font-size:12.5px;color:var(--ink-soft);margin-top:14px;">
+      管理者（オペレーター）用のライセンス発行は <a href="admin.html">admin.html</a> から行います。
+    </p>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="data/apps.js"></script>
+<script>
+/* =====================================================================
+   Shared application storage (used by #applications view / admin.html)
+   ===================================================================== */
+const STORAGE_KEY = 'kintai_applications';
+
+function loadApplications() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch (e) { return []; }
+}
+function saveApplications(list) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return String(iso);
+  const p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) +
+         ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* =====================================================================
+   App registry rendering (data/apps.js → APPS)
+   ===================================================================== */
+function renderAppCards() {
+  const grid = document.getElementById('appGrid');
+  if (!grid) return;
+  /* data/apps.js が先に読み込まれているため、グローバルの APPS を使う */
+  const list = (typeof APPS !== 'undefined' && Array.isArray(APPS)) ? APPS : [];
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty">公開中のアプリはまだありません。</div>';
+    return;
+  }
+  grid.innerHTML = list.map(a => {
+    const published = a.status === '公開中';
+    const badgeClass = published ? '' : ' dev';
+    const chips = (a.features || []).map(f => '<span class="chip">' + escapeHtml(f) + '</span>').join('');
+    const action = published
+      ? '<a class="btn btn-primary btn-sm" href="' + escapeHtml(a.page || '#') + '">詳細・申込へ</a>'
+      : '<button class="btn btn-primary btn-sm" type="button" disabled>詳細・申込へ</button>';
+    return '<article class="app-card' + (published ? '' : ' disabled') + '">' +
+      '<div class="app-card-head">' +
+        '<div class="app-icon">' + escapeHtml(a.icon || '📦') + '</div>' +
+        '<div class="app-text">' +
+          '<h3>' + escapeHtml(a.name || a.id) + '</h3>' +
+          '<p class="app-tagline">' + escapeHtml(a.tagline || '') + '</p>' +
+        '</div>' +
+        '<span class="app-badge' + badgeClass + '">' + escapeHtml(a.status || '開発中') + '</span>' +
+      '</div>' +
+      '<ul class="app-meta">' +
+        '<li>バージョン <b>' + escapeHtml(a.version || '—') + '</b></li>' +
+        '<li>対応環境 <b>' + escapeHtml(a.platforms || '—') + '</b></li>' +
+      '</ul>' +
+      '<div class="chip-list">' + chips + '</div>' +
+      '<div class="app-card-actions">' + action + '</div>' +
+      '</article>';
+  }).join('');
+}
+
+/* ---------- Contact section ---------- */
+document.getElementById('contactMail').textContent = CONTACT_EMAIL;
+document.getElementById('contactMailto').href =
+  'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent('【アプリ工房】お問い合わせ');
+
+/* ---------- Applications table rendering ---------- */
+function renderApplications() {
+  const body = document.getElementById('appsBody');
+  const empty = document.getElementById('appsEmpty');
+  const list = loadApplications();
+  if (!list.length) {
+    body.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  body.innerHTML = list.slice().reverse().map(a => {
+    const issued = a.status === 'キー発行済み';
+    const key = a.licenseKey ? escapeHtml(a.licenseKey.slice(0, 22)) + '…' : '—';
+    return '<tr>' +
+      '<td style="font-family:ui-monospace,Consolas,monospace;">' + escapeHtml(a.no) + '</td>' +
+      '<td>' + escapeHtml(a.appName || '勤怠管理') + '</td>' +
+      '<td>' + escapeHtml(a.company) + '</td>' +
+      '<td>' + escapeHtml(a.name) + '</td>' +
+      '<td>' + escapeHtml(formatDate(a.at)) + '</td>' +
+      '<td>' + escapeHtml(a.size || '—') + '</td>' +
+      '<td><span class="status-chip' + (issued ? ' issued' : '') + '">' +
+        escapeHtml(a.status || '未処理') + '</span></td>' +
+      '<td style="font-family:ui-monospace,Consolas,monospace;font-size:12.5px;">' + key + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+/* ---------- Hash routing: #applications ---------- */
+function routeByHash() {
+  const portal = document.getElementById('portal-view');
+  const apps = document.getElementById('applications-view');
+  if (location.hash === '#applications') {
+    portal.style.display = 'none';
+    apps.style.display = 'block';
+    renderApplications();
+    window.scrollTo(0, 0);
+  } else {
+    apps.style.display = 'none';
+    portal.style.display = '';
+  }
+}
+window.addEventListener('hashchange', routeByHash);
+
+/* ---------- Mobile nav ---------- */
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.getElementById('navMenu').classList.toggle('open');
+});
+document.getElementById('navMenu').addEventListener('click', e => {
+  if (e.target.tagName === 'A') document.getElementById('navMenu').classList.remove('open');
+});
+
+document.getElementById('appsRefresh').addEventListener('click', renderApplications);
+
+renderAppCards();
+routeByHash();
+</script>
+</body>
+</html>
