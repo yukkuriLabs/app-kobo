@@ -17,7 +17,8 @@ const APPS = [
     version: '1.1.0',
     platforms: 'Windows 10 / 11',
     features: ['打刻・月次タイムカード', 'CSV/Excel出力', '祝日マスタ', '月次締め', 'ライセンス認証'],
-    page: 'apps/kintai.html'
+    page: 'apps/kintai.html',
+    download: 'https://github.com/yukkuriLabs/app-kobo/releases/download/v1.1.0/kintai-1.1.0-setup.exe'
   }
   // 今後のアプリはここに追記
 ];

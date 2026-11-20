@@ -50,7 +50,8 @@ const APPS = [
     version: '1.1.0',
     platforms: 'Windows 10 / 11',
     features: ['打刻・月次タイムカード', 'CSV/Excel出力', '祝日マスタ', '月次締め', 'ライセンス認証'],
-    page: 'apps/kintai.html'
+    page: 'apps/kintai.html',
+    download: 'https://github.com/<user>/<repo>/releases/download/v1.1.0/kintai-1.1.0-setup.exe'
   },
   {
     id: 'myapp',
@@ -68,13 +69,14 @@ const APPS = [
 
 - `status` が `'公開中'` 以外（`'開発中'` / `'リリース予定'`）の場合、index.html のカードは**「開発中」バッジ付きでグレーアウト**になり、ボタンは無効化されます。
 - `page` は `apps/<id>.html` への相対パス（`apps/` 直下を基準に index.html からのパス）。
+- `download` はインストーラの直リンク。**設定するとカードに「ダウンロード」ボタンが付きます**（空欄なら表示なし）。admin.html のアプリフォームでも同じ項目を編集できます。
 
 ### ② `apps/<id>.html` のページを作る
 
 `apps/kintai.html` をテンプレートにコピーして書き換えます。
 
 - CSS は `<link rel="stylesheet" href="../assets/style.css">`（`apps/` から 1 つ上が `site/`）
-- 定数 `FORM_ENDPOINT` / `CONTACT_EMAIL` はページ冒頭の `<script>` に置く
+- 定数 `FORM_ENDPOINT` はページ冒頭の `<script>` に置く（**メールアドレスはページに掲載しない方針**）
 - 申込レコードには **`app: '<id>'` と `appName: '<アプリ名>'`** を必ず付ける
 - 申込フォームの「対象アプリ」入力欄は不要（URL/ページ側から自動付与）
 - localStorage キーは従来どおり `kintai_applications`（全アプリ共通。`app` / `appName` で区別）
@@ -92,6 +94,22 @@ const APPS = [
    - **`site/data/license_private.pem` はリポジトリに含めないでください**（下記「秘密鍵の取り扱い」参照）。
 2. リポジトリの **Settings → Pages** で、Source を `Deploy from a branch`、Branch を `main` / フォルダ `/ (root)`（または `/docs`）に設定します。
 3. 数分後に `https://<ユーザー名>.github.io/<リポジトリ名>/` で公開されます。
+
+### インストーラの配布（GitHub Releases）
+
+アプリ本体（100MB超）は GitHub リポジトリに直置きできないため、**Releases** にアップロードします。
+
+```powershell
+# リリース作成（アセット名はバージョン付きのファイル名のまま）
+gh release create v1.1.0 H:\path\to\kintai-1.1.0-setup.exe `
+  -R <user>/<repo> --title "勤怠管理 v1.1.0" --notes "リリースノート"
+```
+
+- 直リンク: `https://github.com/<user>/<repo>/releases/download/<tag>/<ファイル名>`
+- このURLを `data/apps.js` の `download`（または admin.html の「ダウンロードURL」）に貼ると、
+  ポータルのカードとアプリ詳細ページにボタンが表示されます。
+- **SHA256 はリリースノートに必ず載せる**（配布物の検証用）。
+- 新しいバージョンを出すときは `download` のURLもバージョンごとに更新してください。
 
 ### Netlify
 1. Netlify の **Add new site → Deploy manually** で `site/` フォルダをドラッグ＆ドロップするだけです。
@@ -113,36 +131,30 @@ const APPS = [
 ```html
 <script>
 const FORM_ENDPOINT = '';
-const CONTACT_EMAIL = 'info@example.com';
 </script>
 ```
 
 | 定数 | 説明 |
 |---|---|
-| `FORM_ENDPOINT` | 申込フォームの送信先URL。**空文字（既定）** の場合は送信内容を `localStorage`（キー `kintai_applications`）に保存し、申込番号（例 `K-20261118-ab12`）とメール本文コピー機能を表示します。URLを設定すると `fetch` で `POST`（JSON）します。 |
-| `CONTACT_EMAIL` | 確認画面の「メール本文をコピー」「メールアプリで送信」ボタンの宛先。対応環境表・ポータルのお問い合わせ表示にも使われます。 |
+| `FORM_ENDPOINT` | 問い合わせフォームの送信先URL。**空文字（既定）** の場合は送信内容を `localStorage`（キー `kintai_applications`）に保存し、受付番号（例 `K-20261118-ab12`）と「内容をコピー」機能を表示します。URLを設定すると `fetch` で `POST`（JSON）します。 |
 
-### `index.html` — 先頭の `<script>` 内の定数
+### `index.html` — 定数なし
 
-```html
-<script>
-const CONTACT_EMAIL = 'info@example.com';
-</script>
-```
-
-- ポータル「お問い合わせ」セクションの mailto 先です。
+- ポータルのお問い合わせセクションに**メールアドレスは掲載しません**（問い合わせは各アプリページのフォームに一本化）。
+- メールアドレスを追加する場合は、`contact-card` 内に `<div class="mail">` を足して JS から書き換えてください。
 
 ### `admin.html` — 先頭の `<script>` 内の定数
 
 ```html
 <script>
 // Change this password before you deploy this page.
-const ADMIN_PASSWORD = 'kintai-operator';
+const ADMIN_PASSWORD = '...';
 </script>
 ```
 
 - 管理者のログインパスワードです。**公開前に必ず変更してください。**
 - ログイン状態は `sessionStorage`（タブを閉じると解除）に保持されます。
+- このページは静的サイトなので、パスワードはソースから読めます（下記「デプロイ方法」の注意参照）。
 
 ---
 

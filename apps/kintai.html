@@ -7,11 +7,9 @@
      Configuration — change these values as needed.
      FORM_ENDPOINT : URL of the form backend (e.g. Formspree).
                      Leave '' to store applications in localStorage.
-     CONTACT_EMAIL : destination of the preset e-mail body.
      ============================================================ -->
 <script>
 const FORM_ENDPOINT = '';
-const CONTACT_EMAIL = 'info@example.com';
 </script>
 <title>勤怠管理 | アプリ工房</title>
 <meta name="description" content="デスクトップアプリ「勤怠管理」。打刻・月次集計・給与概算・祝日マスタ・休暇承認・CSV出力・バックアップ・権限管理。無料で利用できる業務用デスクトップアプリです。">
@@ -44,7 +42,8 @@ const CONTACT_EMAIL = 'info@example.com';
           クラウドに依存しないデータ管理で、監査対応とバックアップもシンプルに。
         </p>
         <div class="hero-cta">
-          <a href="#apply" class="btn btn-primary">このアプリについて問い合わせる</a>
+          <a href="https://github.com/yukkuriLabs/app-kobo/releases/download/v1.1.0/kintai-1.1.0-setup.exe" class="btn btn-primary">インストーラをダウンロード</a>
+          <a href="#apply" class="btn btn-ghost">このアプリについて問い合わせる</a>
           <a href="../index.html" class="btn btn-ghost">アプリ工房トップへ</a>
         </div>
         <p class="hero-note"><strong>無料</strong> ／ データは貴社PC内に保存 ／ ライセンスキーは正規の利用確認のために発行</p>
@@ -143,9 +142,10 @@ const CONTACT_EMAIL = 'info@example.com';
             <tr><th>バージョン</th><td>1.1.0</td></tr>
             <tr><th>対応OS</th><td>Windows 10 / 11（64bit）</td></tr>
             <tr><th>提供形態</th><td>デスクトップアプリ（インストール型）</td></tr>
+            <tr><th>ダウンロード</th><td><a href="https://github.com/yukkuriLabs/app-kobo/releases/download/v1.1.0/kintai-1.1.0-setup.exe">インストーラ（kintai-1.1.0-setup.exe ／ 約121MB）</a></td></tr>
             <tr><th>ライセンス</th><td>RSA署名付きライセンスキー。正規の利用確認のために無料で発行します。</td></tr>
-            <tr><th>サポート</th><td>メール・電話</td></tr>
-            <tr><th>お問い合わせ</th><td id="specContact">info@example.com</td></tr>
+            <tr><th>サポート</th><td>お問い合わせフォーム・電話</td></tr>
+            <tr><th>お問い合わせ</th><td id="specContact">本ページ下部のお問い合わせフォーム</td></tr>
           </tbody>
         </table>
         <p style="font-size:12.5px;color:var(--ink-soft);margin-top:10px;">
@@ -242,12 +242,11 @@ const CONTACT_EMAIL = 'info@example.com';
           <p id="confirmSaveNote"></p>
           <div class="warn" id="confirmWarn" style="display:none;"></div>
           <div class="confirm-actions">
-            <button type="button" class="btn btn-primary" id="copyMailBtn">メール本文をコピー</button>
-            <a class="btn btn-ghost" id="mailtoLink" href="#">メールアプリで送信</a>
+            <button type="button" class="btn btn-primary" id="copyMailBtn">お問い合わせ内容をコピー</button>
             <button type="button" class="btn btn-ghost" id="againBtn">続けて入力する</button>
           </div>
           <p style="font-size:12.5px;margin-top:14px;">
-            コピーした本文を <b id="confirmEmail">info@example.com</b> 宛に送信いただくと、より確実に受付できます。
+            コピーした内容は、担当者とのやり取りや社内共有にご活用いただけます。
           </p>
         </div>
       </div>
@@ -325,10 +324,6 @@ function copyText(text) {
   });
 }
 
-/* ---------- Contact info ---------- */
-document.getElementById('specContact').textContent = CONTACT_EMAIL;
-document.getElementById('confirmEmail').textContent = CONTACT_EMAIL;
-
 /* ---------- Mobile nav ---------- */
 document.getElementById('navToggle').addEventListener('click', () => {
   document.getElementById('navMenu').classList.toggle('open');
@@ -360,7 +355,7 @@ function buildMailBody(app) {
     'ご要望: ' + (app.message || '（なし）'),
     '受付日時: ' + formatDate(app.at),
     '',
-    '※ このメールはお問い合わせフォームの内容をコピーしたものです。'
+    '※ この内容はお問い合わせフォームの入力内容をそのままコピーしたものです。'
   ].join('\n');
 }
 
@@ -440,24 +435,19 @@ document.getElementById('applyForm').addEventListener('submit', async function (
   } else if (remoteOk === false) {
     saveNote.textContent = '';
     warn.style.display = '';
-    warn.textContent = 'サーバーへの送信に失敗したため、この端末の localStorage に保存しました。下のボタンでメール本文を送信してください。';
+    warn.textContent = 'サーバーへの送信に失敗したため、この端末の localStorage に保存しました。下のボタンで内容をコピーして共有してください。';
   } else {
     saveNote.textContent = '入力内容はこの端末の localStorage に保存されました。';
     warn.style.display = 'none';
   }
 
-  const mailBody = buildMailBody(app);
-  const subject = '【' + app.appName + '】お問い合わせ（' + app.no + '）';
-  document.getElementById('mailtoLink').href =
-    'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent(subject) +
-    '&body=' + encodeURIComponent(mailBody);
   window.scrollTo({ top: document.getElementById('apply').offsetTop - 60, behavior: 'smooth' });
 });
 
 document.getElementById('copyMailBtn').addEventListener('click', () => {
   if (!lastApplication) return;
   copyText(buildMailBody(lastApplication))
-    .then(() => showToast('メール本文をコピーしました'))
+    .then(() => showToast('お問い合わせ内容をコピーしました'))
     .catch(() => showToast('コピーできませんでした。手動で選択してください'));
 });
 

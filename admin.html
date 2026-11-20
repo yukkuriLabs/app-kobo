@@ -9,7 +9,7 @@
      ============================================================ -->
 <script>
 // Change this password before you deploy this page.
-const ADMIN_PASSWORD = 'kintai-operator';
+const ADMIN_PASSWORD = '8901reimu';
 </script>
 <title>オペレーター管理 | アプリ工房</title>
 <style>
@@ -239,10 +239,10 @@ const ADMIN_PASSWORD = 'kintai-operator';
     </div>
 
     <div class="table-wrap">
-      <table class="apps" style="min-width:900px;">
+      <table class="apps" style="min-width:1020px;">
         <thead>
           <tr>
-            <th>Icon</th><th>ID</th><th>アプリ名</th><th>キャッチコピー</th><th>状態</th><th>Ver</th><th>対応環境</th><th>ページ</th><th></th>
+            <th>Icon</th><th>ID</th><th>アプリ名</th><th>キャッチコピー</th><th>状態</th><th>Ver</th><th>対応環境</th><th>ページ</th><th>DL</th><th></th>
           </tr>
         </thead>
         <tbody id="appsRegBody"></tbody>
@@ -298,6 +298,13 @@ const ADMIN_PASSWORD = 'kintai-operator';
             <label for="afPage">ページ</label>
             <input type="text" id="afPage" placeholder="apps/myapp.html" autocomplete="off">
             <span class="hint">index.html からの相対パス（例: <code>apps/kintai.html</code>）</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="afDownload">ダウンロードURL</label>
+            <input type="url" id="afDownload" placeholder="https://github.com/.../releases/download/v1.0.0/app-setup.exe" autocomplete="off">
+            <span class="hint">GitHub Releases のインストーラURL。空欄の場合はダウンロードボタンを表示しません。</span>
           </div>
         </div>
         <div class="field">
@@ -467,7 +474,8 @@ function normalizeApp(a) {
     version: String(a.version || '0.1.0'),
     platforms: String(a.platforms || ''),
     features: features,
-    page: String(a.page || 'apps/' + id + '.html')
+    page: String(a.page || 'apps/' + id + '.html'),
+    download: String(a.download || '')
   };
 }
 function loadAppsStore() {
@@ -817,6 +825,11 @@ function renderAppsRegistry() {
       '<td style="white-space:nowrap;">' + escapeHtml(a.version || '—') + '</td>' +
       '<td style="white-space:nowrap;">' + escapeHtml(a.platforms || '—') + '</td>' +
       '<td style="font-family:ui-monospace,Consolas,monospace;font-size:12px;">' + escapeHtml(a.page || '—') + '</td>' +
+      '<td style="font-size:12px;">' +
+        (a.download
+          ? '<a href="' + escapeHtml(a.download) + '" target="_blank" rel="noopener">あり ↗</a>'
+          : '<span style="color:var(--ink-soft);">—</span>') +
+      '</td>' +
       '<td><div class="reg-actions">' +
         '<button class="btn btn-ghost btn-sm" type="button" data-edit="' + escapeHtml(a.id) + '">編集</button>' +
         '<button class="btn btn-danger btn-sm" type="button" data-del="' + escapeHtml(a.id) + '">削除</button>' +
@@ -872,6 +885,7 @@ function openAppForm(app) {
   document.getElementById('afVersion').value = app ? (app.version || '') : '';
   document.getElementById('afPlatforms').value = app ? (app.platforms || '') : '';
   document.getElementById('afPage').value = app ? (app.page || '') : '';
+  document.getElementById('afDownload').value = app ? (app.download || '') : '';
   document.getElementById('afFeatures').value = app ? (app.features || []).join('\n') : '';
   document.getElementById('appFormHint').textContent =
     '保存はこの端末の localStorage（kobo_apps）のみです。公開には書き出し＋コミットが必要です。';
@@ -915,7 +929,8 @@ document.getElementById('appForm').addEventListener('submit', function (e) {
     platforms: document.getElementById('afPlatforms').value.trim(),
     features: document.getElementById('afFeatures').value
       .split('\n').map(s => s.trim()).filter(Boolean),
-    page: document.getElementById('afPage').value.trim()
+    page: document.getElementById('afPage').value.trim(),
+    download: document.getElementById('afDownload').value.trim()
   });
   if (!entry) { showToast('入力内容が正しくありません'); return; }
 

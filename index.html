@@ -4,12 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- ============================================================
-     Configuration — change these values as needed.
-     CONTACT_EMAIL : destination of the contact / application mail.
+     Configuration — this page has no e-mail address on purpose.
+     Inquiries go through each app's contact form.
      ============================================================ -->
-<script>
-const CONTACT_EMAIL = 'info@example.com';
-</script>
 <title>アプリ工房 | 無料で使えるデスクトップアプリの公開ポータル</title>
 <meta name="description" content="個人開発の業務用デスクトップアプリをまとめた公開ポータル「アプリ工房」。勤怠管理をはじめ、無料で使えるデスクトップアプリを順次公開しています。">
 <link rel="stylesheet" href="assets/style.css">
@@ -97,14 +94,13 @@ const CONTACT_EMAIL = 'info@example.com';
         <p>アプリのご要望・ご質問はこちらから。1営業日以内を目安にご連絡します。</p>
       </div>
       <div class="contact-card">
-        <p>下のアドレス宛にメールをお送りいただくか、ボタンからメールアプリを開いてください。</p>
-        <div class="mail" id="contactMail">info@example.com</div>
+        <p>アプリへのご質問・ご要望は、各アプリの詳細ページにあるお問い合わせフォームをご利用ください。</p>
         <div class="hero-cta" style="justify-content:center;">
-          <a class="btn btn-primary" id="contactMailto" href="#">メールアプリで送信</a>
-          <a class="btn btn-ghost" href="#apps">アプリ一覧へ戻る</a>
+          <a class="btn btn-primary" href="#apps">アプリ一覧から選ぶ</a>
+          <a class="btn btn-ghost" href="#coming">今後のアプリへ</a>
         </div>
         <p style="font-size:13px;margin-top:16px;">
-          各アプリのお問い合わせフォームは、アプリ詳細ページにあります。
+          フォームからお送りいただいた内容は、1営業日以内を目安に担当者よりご連絡します。
         </p>
       </div>
     </div>
@@ -220,7 +216,10 @@ function renderAppCards() {
     const badgeClass = published ? '' : ' dev';
     const chips = (a.features || []).map(f => '<span class="chip">' + escapeHtml(f) + '</span>').join('');
     const action = published
-      ? '<a class="btn btn-primary btn-sm" href="' + escapeHtml(a.page || '#') + '">詳細・お問い合わせへ</a>'
+      ? '<a class="btn btn-primary btn-sm" href="' + escapeHtml(a.page || '#') + '">詳細・お問い合わせへ</a>' +
+        (a.download
+          ? '<a class="btn btn-ghost btn-sm" href="' + escapeHtml(a.download) + '" download>ダウンロード</a>'
+          : '')
       : '<button class="btn btn-primary btn-sm" type="button" disabled>詳細・お問い合わせへ</button>';
     return '<article class="app-card' + (published ? '' : ' disabled') + '">' +
       '<div class="app-card-head">' +
@@ -240,11 +239,6 @@ function renderAppCards() {
       '</article>';
   }).join('');
 }
-
-/* ---------- Contact section ---------- */
-document.getElementById('contactMail').textContent = CONTACT_EMAIL;
-document.getElementById('contactMailto').href =
-  'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent('【アプリ工房】お問い合わせ');
 
 /* ---------- Applications table rendering (with app filter) ---------- */
 function currentAppFilter() {
