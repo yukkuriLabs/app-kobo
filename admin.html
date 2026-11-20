@@ -88,7 +88,8 @@ const ADMIN_PASSWORD = 'kintai-operator';
   .field .hint { font-size: 12px; color: var(--ink-soft); }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .form-row-3 { display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end; }
-  @media (max-width: 680px) { .form-row, .form-row-3 { grid-template-columns: 1fr; } }
+  .form-row-4 { display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; gap: 16px; align-items: end; }
+  @media (max-width: 680px) { .form-row, .form-row-3, .form-row-4 { grid-template-columns: 1fr; } }
   .inline-check { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: 4px; }
 
   /* table */
@@ -115,6 +116,28 @@ const ADMIN_PASSWORD = 'kintai-operator';
 
   footer { text-align: center; font-size: 12.5px; color: var(--ink-soft); padding: 24px 0 40px; }
 
+  /* app registry management */
+  .filter-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .filter-row select {
+    font-family: inherit; font-size: 13.5px; padding: 7px 10px;
+    border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink);
+  }
+  .filter-row select:focus { outline: 2px solid #c7d6fe; border-color: var(--primary); }
+  table.apps .reg-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  table.apps .status-select {
+    font-family: inherit; font-size: 12.5px; font-weight: 700; padding: 4px 6px;
+    border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink);
+  }
+  .export-box {
+    margin-top: 18px; border: 1px dashed #c7d6fe; background: var(--primary-light);
+    border-radius: 10px; padding: 16px 18px;
+  }
+  .export-box h3 { margin: 0 0 6px; font-size: 15.5px; }
+  .export-box p { margin: 0 0 10px; font-size: 13.5px; color: var(--ink-soft); }
+  .export-box .note { font-size: 12.5px; color: var(--ink-soft); margin-top: 10px; }
+  .export-box code { background: rgba(0,0,0,.06); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
+  #exportPreview { width: 100%; min-height: 150px; margin-top: 6px; }
+
   #toast {
     position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
     background: #101828; color: #fff; padding: 11px 22px; border-radius: 999px;
@@ -129,7 +152,7 @@ const ADMIN_PASSWORD = 'kintai-operator';
   <div class="container header-inner">
     <a class="brand" href="index.html">アプリ工房<span>オペレーター管理</span></a>
     <div class="header-actions">
-      <a class="btn btn-ghost btn-sm" href="index.html#applications">申込一覧（トップ側）</a>
+      <a class="btn btn-ghost btn-sm" href="index.html#applications">お問い合わせ一覧（トップ側）</a>
       <button class="btn btn-danger btn-sm" id="logoutBtn" type="button">ログアウト</button>
     </div>
   </div>
@@ -168,25 +191,146 @@ const ADMIN_PASSWORD = 'kintai-operator';
   <section class="card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">
       <div>
-        <h2>申込一覧</h2>
-        <p class="sub">この端末の localStorage（キー <code>kintai_applications</code>）に保存された申し込みです。</p>
+        <h2>お問い合わせ一覧</h2>
+        <p class="sub">この端末の localStorage（キー <code>kintai_applications</code>）に保存されたお問い合わせです。</p>
       </div>
       <div style="display:flex;gap:10px;">
         <button class="btn btn-ghost btn-sm" id="refreshBtn" type="button">更新</button>
         <button class="btn btn-primary btn-sm" id="newIssueBtn" type="button">会社作成（ライセンス発行）</button>
       </div>
     </div>
+    <div class="filter-row">
+      <label for="appFilter" style="font-size:13px;font-weight:700;">アプリで絞り込み</label>
+      <select id="appFilter"><option value="">すべて</option></select>
+      <span style="font-size:12.5px;color:var(--ink-soft);" id="appFilterCount"></span>
+    </div>
     <div class="table-wrap">
       <table class="apps">
         <thead>
           <tr>
-            <th>申込番号</th><th>アプリ</th><th>会社名</th><th>担当者</th><th>申込日時</th><th>人数規模</th><th>状態</th><th>発行キー</th><th></th>
+            <th>お問い合わせ番号</th><th>アプリ</th><th>会社名</th><th>担当者</th><th>受付日時</th><th>人数規模</th><th>状態</th><th>発行キー</th><th></th>
           </tr>
         </thead>
         <tbody id="appsBody"></tbody>
       </table>
       <div class="empty" id="appsEmpty" style="display:none;">
-        申込はまだありません。「会社作成（ライセンス発行）」から直接発行できます。
+        お問い合わせはまだありません。「会社作成（ライセンス発行）」から直接発行できます。
+      </div>
+      <div class="empty" id="appsFilteredEmpty" style="display:none;">
+        このアプリのお問い合わせはまだありません。
+      </div>
+    </div>
+  </section>
+
+  <!-- App registry management -->
+  <section class="card" id="appsRegistryCard">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">
+      <div>
+        <h2>アプリ管理</h2>
+        <p class="sub">
+          localStorage（キー <code>kobo_apps</code>）でアプリを追加・編集・削除・ステータス変更します。
+          この一覧は「お問い合わせ一覧」の絞り込みと、ライセンス発行の「対象アプリ」にも使われます。
+        </p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" id="appReloadBtn" type="button">data/apps.js から再読込</button>
+        <button class="btn btn-primary btn-sm" id="appNewBtn" type="button">新規アプリを追加</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="apps" style="min-width:900px;">
+        <thead>
+          <tr>
+            <th>Icon</th><th>ID</th><th>アプリ名</th><th>キャッチコピー</th><th>状態</th><th>Ver</th><th>対応環境</th><th>ページ</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="appsRegBody"></tbody>
+      </table>
+      <div class="empty" id="appsRegEmpty" style="display:none;">アプリがまだありません。</div>
+    </div>
+
+    <!-- App form (add / edit) -->
+    <div id="appFormBox" style="display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);">
+      <h3 id="appFormTitle" style="margin:0 0 14px;font-size:15.5px;">新規アプリの追加</h3>
+      <form id="appForm">
+        <div class="form-row">
+          <div class="field">
+            <label for="afId">ID<span style="color:#dc2626;">*</span></label>
+            <input type="text" id="afId" placeholder="myapp" autocomplete="off">
+            <span class="hint">英小文字・英数字で一意。保存後に変更できます。</span>
+          </div>
+          <div class="field">
+            <label for="afName">アプリ名<span style="color:#dc2626;">*</span></label>
+            <input type="text" id="afName" placeholder=" MyApp" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="afTagline">キャッチコピー</label>
+            <input type="text" id="afTagline" placeholder="打刻から月次集計まで">
+          </div>
+          <div class="field">
+            <label for="afIcon">アイコン（絵文字）</label>
+            <input type="text" id="afIcon" placeholder="📦" maxlength="4">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="afStatus">ステータス</label>
+            <select id="afStatus">
+              <option value="公開中">公開中</option>
+              <option value="開発中">開発中</option>
+              <option value="リリース予定">リリース予定</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="afVersion">バージョン</label>
+            <input type="text" id="afVersion" placeholder="1.0.0" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="afPlatforms">対応環境</label>
+            <input type="text" id="afPlatforms" placeholder="Windows 10 / 11" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="afPage">ページ</label>
+            <input type="text" id="afPage" placeholder="apps/myapp.html" autocomplete="off">
+            <span class="hint">index.html からの相対パス（例: <code>apps/kintai.html</code>）</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="afFeatures">機能（1行につき1つ）</label>
+          <textarea id="afFeatures" placeholder="打刻・月次タイムカード&#10;CSV/Excel出力"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-sm" type="submit">保存</button>
+          <button class="btn btn-ghost btn-sm" id="appFormCancel" type="button">キャンセル</button>
+          <span class="hint" id="appFormHint"></span>
+        </div>
+      </form>
+    </div>
+
+    <!-- Export data/apps.js -->
+    <div class="export-box">
+      <h3>data/apps.js の書き出し</h3>
+      <p>
+        現在の <code>kobo_apps</code> の内容から <code>data/apps.js</code> のソースを生成します。
+        ボタンを押すと <b>1. ダウンロード（apps.js）</b>と <b>2. クリップボードへのコピー</b> を行います。
+      </p>
+      <div class="key-actions" style="margin-top:0;">
+        <button class="btn btn-primary btn-sm" id="exportAppsBtn" type="button">data/apps.js を書き出す</button>
+      </div>
+      <p class="note">
+        <b>公開までの手順:</b>
+        ① 書き出した <code>apps.js</code> をリポジトリの <code>data/apps.js</code> に置き換える →
+        ② コミットしてプッシュする（GitHub Pages に自動反映）。
+        この手順を飛ばすと公開サイトのアプリ一覧は変わりません。
+      </p>
+      <div class="field" style="margin-top:12px;">
+        <label for="exportPreview">生成されるソース（確認用）</label>
+        <textarea id="exportPreview" readonly spellcheck="false" placeholder="「data/apps.js を書き出す」を押すとここに表示されます。"></textarea>
       </div>
     </div>
   </section>
@@ -227,11 +371,16 @@ const ADMIN_PASSWORD = 'kintai-operator';
       （ペイロード文字列に対する RSA-SHA256 / PKCS#1 v1.5 署名）
     </p>
     <form id="issueForm">
-      <div class="form-row-3">
+      <div class="form-row-4">
         <div class="field">
           <label for="issCompany">会社名<span style="color:#dc2626;">*</span></label>
           <input type="text" id="issCompany" list="companyList" required placeholder="株式会社テスト">
           <datalist id="companyList"></datalist>
+        </div>
+        <div class="field">
+          <label for="issApp">対象アプリ</label>
+          <select id="issApp"></select>
+          <span class="hint">発行履歴（<code>kobo_issued</code>）に記録されます。</span>
         </div>
         <div class="field">
           <label for="issExpiry">有効期限（空欄＝無期限）</label>
@@ -255,7 +404,7 @@ const ADMIN_PASSWORD = 'kintai-operator';
   </section>
 
   <footer>
-    アプリ工房 オペレーター管理 ／ 申込データはこの端末の localStorage にのみ保存されます。
+    アプリ工房 オペレーター管理 ／ お問い合わせデータはこの端末の localStorage にのみ保存されます。
   </footer>
 </main>
 
@@ -266,6 +415,8 @@ const ADMIN_PASSWORD = 'kintai-operator';
    Shared storage helpers (same shape as index.html)
    ===================================================================== */
 const STORAGE_KEY = 'kintai_applications';
+const APPS_STORE_KEY = 'kobo_apps';
+const ISSUED_STORE_KEY = 'kobo_issued';
 const SESSION_KEY_PRIVATE = 'kintai_license_private';
 const SESSION_KEY_AUTH = 'kintai_admin_auth';
 
@@ -278,6 +429,70 @@ function loadApplications() {
 }
 function saveApplications(list) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); } catch (e) {}
+}
+
+/* =====================================================================
+   App registry (localStorage: kobo_apps) / issued history (kobo_issued)
+   ===================================================================== */
+const DEFAULT_APPS = [
+  {
+    id: 'kintai',
+    name: '勤怠管理',
+    tagline: '打刻から月次集計・給与出力まで',
+    icon: '⏱',
+    status: '公開中',
+    version: '1.1.0',
+    platforms: 'Windows 10 / 11',
+    features: ['打刻・月次タイムカード', 'CSV/Excel出力', '祝日マスタ', '月次締め', 'ライセンス認証'],
+    page: 'apps/kintai.html'
+  }
+];
+
+function normalizeApp(a) {
+  if (!a || typeof a !== 'object') return null;
+  const id = String(a.id || '').trim();
+  if (!id) return null;
+  let features;
+  if (Array.isArray(a.features)) {
+    features = a.features.map(f => String(f).trim()).filter(Boolean);
+  } else {
+    features = String(a.features || '').split(/[,\n]/).map(s => s.trim()).filter(Boolean);
+  }
+  return {
+    id: id,
+    name: String(a.name || id),
+    tagline: String(a.tagline || ''),
+    icon: String(a.icon || '📦'),
+    status: ['公開中', '開発中', 'リリース予定'].indexOf(a.status) >= 0 ? a.status : '開発中',
+    version: String(a.version || '0.1.0'),
+    platforms: String(a.platforms || ''),
+    features: features,
+    page: String(a.page || 'apps/' + id + '.html')
+  };
+}
+function loadAppsStore() {
+  try {
+    const raw = localStorage.getItem(APPS_STORE_KEY);
+    const list = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(list)) {
+      const norm = list.map(normalizeApp).filter(Boolean);
+      return norm;
+    }
+  } catch (e) {}
+  return null; /* null = 未初期化（data/apps.js から取り込む） */
+}
+function saveAppsStore(list) {
+  try { localStorage.setItem(APPS_STORE_KEY, JSON.stringify(list)); } catch (e) {}
+}
+function loadIssuedHistory() {
+  try {
+    const raw = localStorage.getItem(ISSUED_STORE_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch (e) { return []; }
+}
+function saveIssuedHistory(list) {
+  try { localStorage.setItem(ISSUED_STORE_KEY, JSON.stringify(list)); } catch (e) {}
 }
 function formatDate(iso) {
   if (!iso) return '';
@@ -378,17 +593,76 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
    ===================================================================== */
 let selectedNo = null;
 
+/* ---------- App filter (すべて / 各アプリ) ---------- */
+function currentAppFilter() {
+  const el = document.getElementById('appFilter');
+  return el ? el.value : '';
+}
+function matchAppFilter(rec, filter) {
+  if (!filter) return true;
+  if (filter === '__unset__') return !(rec && rec.app);
+  return !!rec && (rec.app || '') === filter;
+}
+function renderAppFilterOptions() {
+  const sel = document.getElementById('appFilter');
+  if (!sel) return;
+  const keep = sel.value;
+  const seen = {};
+  const opts = ['<option value="">すべて</option>'];
+  appsRegistry.forEach(a => {
+    if (!a || !a.id || seen[a.id]) return;
+    seen[a.id] = 1;
+    opts.push('<option value="' + escapeHtml(a.id) + '">' +
+      escapeHtml((a.icon ? a.icon + ' ' : '') + a.name) + '</option>');
+  });
+  let hasUnset = false;
+  loadApplications().forEach(r => {
+    if (!r) return;
+    const id = r.app || '';
+    if (!id) { hasUnset = true; return; }
+    if (seen[id]) return;
+    seen[id] = 1;
+    opts.push('<option value="' + escapeHtml(id) + '">' + escapeHtml(r.appName || id) + '</option>');
+  });
+  if (hasUnset) opts.push('<option value="__unset__">（アプリ未設定）</option>');
+  sel.innerHTML = opts.join('');
+  sel.value = keep;
+  if (sel.value !== keep) sel.value = '';
+}
+
 function renderApplications() {
   const body = document.getElementById('appsBody');
   const empty = document.getElementById('appsEmpty');
-  const list = loadApplications();
-  if (!list.length) {
+  const filteredEmpty = document.getElementById('appsFilteredEmpty');
+  const countEl = document.getElementById('appFilterCount');
+  renderAppFilterOptions();
+  const all = loadApplications();
+  const filter = currentAppFilter();
+  const list = filter ? all.filter(a => matchAppFilter(a, filter)) : all;
+
+  if (countEl) countEl.textContent = all.length ? (list.length + ' / ' + all.length + ' 件') : '';
+
+  const datalist = document.getElementById('companyList');
+  const seen = {};
+  datalist.innerHTML = all
+    .filter(a => a && a.company && !seen[a.company] && (seen[a.company] = 1))
+    .map(a => '<option value="' + escapeHtml(a.company) + '"></option>').join('');
+
+  if (!all.length) {
     body.innerHTML = '';
     empty.style.display = '';
-    document.getElementById('companyList').innerHTML = '';
+    if (filteredEmpty) filteredEmpty.style.display = 'none';
     return;
   }
   empty.style.display = 'none';
+
+  if (!list.length) {
+    body.innerHTML = '';
+    if (filteredEmpty) filteredEmpty.style.display = '';
+    return;
+  }
+  if (filteredEmpty) filteredEmpty.style.display = 'none';
+
   body.innerHTML = list.slice().reverse().map(a => {
     const issued = a.status === 'キー発行済み';
     const key = a.licenseKey
@@ -406,12 +680,6 @@ function renderApplications() {
       '<td><button class="btn btn-ghost btn-sm" data-select="' + escapeHtml(a.no) + '" type="button">選択</button></td>' +
       '</tr>';
   }).join('');
-
-  const datalist = document.getElementById('companyList');
-  const seen = {};
-  datalist.innerHTML = list
-    .filter(a => a && a.company && !seen[a.company] && (seen[a.company] = 1))
-    .map(a => '<option value="' + escapeHtml(a.company) + '"></option>').join('');
 }
 
 document.getElementById('appsBody').addEventListener('click', function (e) {
@@ -419,11 +687,18 @@ document.getElementById('appsBody').addEventListener('click', function (e) {
   if (!btn) return;
   selectedNo = btn.getAttribute('data-select');
   const app = loadApplications().find(a => a && a.no === selectedNo);
-  if (app) document.getElementById('issCompany').value = app.company;
+  if (app) {
+    document.getElementById('issCompany').value = app.company;
+    if (app.app) {
+      const sel = document.getElementById('issApp');
+      sel.value = app.app; /* 存在しない ID なら先頭に戻る */
+    }
+  }
   renderApplications();
   document.getElementById('issueCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 document.getElementById('refreshBtn').addEventListener('click', renderApplications);
+document.getElementById('appFilter').addEventListener('change', renderApplications);
 document.getElementById('newIssueBtn').addEventListener('click', () => {
   selectedNo = null;
   document.getElementById('issCompany').value = '';
@@ -431,6 +706,319 @@ document.getElementById('newIssueBtn').addEventListener('click', () => {
   document.getElementById('issueCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
   document.getElementById('issCompany').focus();
 });
+
+/* =====================================================================
+   App registry management (localStorage: kobo_apps)
+   ===================================================================== */
+let appsRegistry = [];   /* 登録済みアプリ（kobo_apps） */
+let editingAppId = null; /* 編集中のアプリ ID（null = 新規） */
+
+/* ---- data/apps.js の読み込み ---- */
+function fetchAppsJsSource() {
+  return fetch('data/apps.js').then(res => {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.text();
+  });
+}
+/* "const APPS = [ ... ]" の配列リテラル部分を取り出す（前後のコメント等は無視） */
+function extractAppsArrayLiteral(text) {
+  const src = String(text || '');
+  const at = src.search(/const\s+APPS\s*=/);
+  if (at < 0) return null;
+  const open = src.indexOf('[', at);
+  if (open < 0) return null;
+  let depth = 0, quote = null, escaped = false, close = -1;
+  for (let i = open; i < src.length; i++) {
+    const ch = src.charAt(i);
+    if (quote) {
+      if (escaped) { escaped = false; continue; }
+      if (ch === '\\') { escaped = true; continue; }
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"' || ch === '`') { quote = ch; continue; }
+    if (ch === '[') depth++;
+    else if (ch === ']') {
+      depth--;
+      if (depth === 0) { close = i; break; }
+    }
+  }
+  if (close < 0) return null;
+  return src.slice(open, close + 1);
+}
+function parseAppsJs(text) {
+  try {
+    const literal = extractAppsArrayLiteral(text);
+    if (!literal) return null;
+    /* このサイト自身の data/apps.js（素の JS・ES modules なし）を評価する */
+    const arr = new Function('return (' + literal + ');')();
+    if (!Array.isArray(arr)) return null;
+    const list = arr.map(normalizeApp).filter(Boolean);
+    return list.length ? list : null;
+  } catch (e) { return null; }
+}
+
+/* ---- 初期投入: kobo_apps → fetch('data/apps.js') → デフォルト1件 ---- */
+function seedAppsRegistry() {
+  const stored = loadAppsStore();
+  if (stored) {
+    appsRegistry = stored;
+    refreshAfterAppsChange();
+    return;
+  }
+  const fallback = () => {
+    appsRegistry = DEFAULT_APPS.map(a => Object.assign({}, a, { features: a.features.slice() }));
+    saveAppsStore(appsRegistry);
+    refreshAfterAppsChange();
+  };
+  fetchAppsJsSource()
+    .then(text => {
+      const parsed = parseAppsJs(text);
+      if (!parsed) throw new Error('parse failed');
+      appsRegistry = parsed;
+      saveAppsStore(appsRegistry);
+      refreshAfterAppsChange();
+    })
+    .catch(() => fallback()); /* file:// などで fetch が失敗した場合はデフォルト1件 */
+}
+
+function refreshAfterAppsChange() {
+  renderAppsRegistry();
+  renderAppFilterOptions();
+  renderIssAppOptions();
+  renderApplications();
+}
+
+/* ---- 一覧テーブル ---- */
+function renderAppsRegistry() {
+  const body = document.getElementById('appsRegBody');
+  const empty = document.getElementById('appsRegEmpty');
+  if (!appsRegistry.length) {
+    body.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+  body.innerHTML = appsRegistry.map(a => {
+    const statusOptions = ['公開中', '開発中', 'リリース予定'].map(s =>
+      '<option value="' + escapeHtml(s) + '"' + (a.status === s ? ' selected' : '') + '>' +
+      escapeHtml(s) + '</option>').join('');
+    const features = (a.features || []).length
+      ? escapeHtml((a.features || []).join(' / '))
+      : '—';
+    return '<tr>' +
+      '<td style="font-size:20px;">' + escapeHtml(a.icon || '📦') + '</td>' +
+      '<td style="font-family:ui-monospace,Consolas,monospace;white-space:nowrap;">' + escapeHtml(a.id) + '</td>' +
+      '<td><b>' + escapeHtml(a.name) + '</b></td>' +
+      '<td style="color:var(--ink-soft);min-width:180px;">' + escapeHtml(a.tagline || '—') +
+        '<br><span style="font-size:12px;">' + features + '</span></td>' +
+      '<td><select class="status-select" data-status="' + escapeHtml(a.id) + '" aria-label="ステータス">' +
+        statusOptions + '</select></td>' +
+      '<td style="white-space:nowrap;">' + escapeHtml(a.version || '—') + '</td>' +
+      '<td style="white-space:nowrap;">' + escapeHtml(a.platforms || '—') + '</td>' +
+      '<td style="font-family:ui-monospace,Consolas,monospace;font-size:12px;">' + escapeHtml(a.page || '—') + '</td>' +
+      '<td><div class="reg-actions">' +
+        '<button class="btn btn-ghost btn-sm" type="button" data-edit="' + escapeHtml(a.id) + '">編集</button>' +
+        '<button class="btn btn-danger btn-sm" type="button" data-del="' + escapeHtml(a.id) + '">削除</button>' +
+      '</div></td>' +
+      '</tr>';
+  }).join('');
+}
+
+document.getElementById('appsRegBody').addEventListener('click', function (e) {
+  const edit = e.target.closest('button[data-edit]');
+  if (edit) {
+    const app = appsRegistry.find(a => a && a.id === edit.getAttribute('data-edit'));
+    if (app) openAppForm(app);
+    return;
+  }
+  const del = e.target.closest('button[data-del]');
+  if (del) {
+    const id = del.getAttribute('data-del');
+    const app = appsRegistry.find(a => a && a.id === id);
+    if (!app) return;
+    if (!window.confirm('「' + app.name + '」（' + id + '）を削除しますか？\n※ 公開サイトへの反映には data/apps.js の書き出しとコミットが必要です。')) return;
+    appsRegistry = appsRegistry.filter(a => a && a.id !== id);
+    saveAppsStore(appsRegistry);
+    if (editingAppId === id) closeAppForm();
+    refreshAfterAppsChange();
+    showToast('アプリを削除しました');
+  }
+});
+document.getElementById('appsRegBody').addEventListener('change', function (e) {
+  const sel = e.target.closest('select[data-status]');
+  if (!sel) return;
+  const id = sel.getAttribute('data-status');
+  const app = appsRegistry.find(a => a && a.id === id);
+  if (!app) return;
+  app.status = sel.value;
+  saveAppsStore(appsRegistry);
+  renderIssAppOptions();
+  showToast('「' + app.name + '」のステータスを「' + app.status + '」に変更しました');
+});
+
+/* ---- 追加・編集フォーム ---- */
+function openAppForm(app) {
+  const box = document.getElementById('appFormBox');
+  box.style.display = '';
+  editingAppId = app ? app.id : null;
+  document.getElementById('appFormTitle').textContent =
+    app ? ('アプリの編集: ' + app.name) : '新規アプリの追加';
+  document.getElementById('afId').value = app ? app.id : '';
+  document.getElementById('afName').value = app ? app.name : '';
+  document.getElementById('afTagline').value = app ? (app.tagline || '') : '';
+  document.getElementById('afIcon').value = app ? (app.icon || '') : '';
+  document.getElementById('afStatus').value = app ? app.status : '公開中';
+  document.getElementById('afVersion').value = app ? (app.version || '') : '';
+  document.getElementById('afPlatforms').value = app ? (app.platforms || '') : '';
+  document.getElementById('afPage').value = app ? (app.page || '') : '';
+  document.getElementById('afFeatures').value = app ? (app.features || []).join('\n') : '';
+  document.getElementById('appFormHint').textContent =
+    '保存はこの端末の localStorage（kobo_apps）のみです。公開には書き出し＋コミットが必要です。';
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('afId').focus();
+}
+function closeAppForm() {
+  document.getElementById('appFormBox').style.display = 'none';
+  editingAppId = null;
+}
+document.getElementById('appNewBtn').addEventListener('click', () => openAppForm(null));
+document.getElementById('appFormCancel').addEventListener('click', closeAppForm);
+
+document.getElementById('appForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const id = document.getElementById('afId').value.trim();
+  const name = document.getElementById('afName').value.trim();
+  if (!/^[a-z][a-z0-9]*$/.test(id)) {
+    showToast('IDは英小文字・英数字（先頭は英小文字）で入力してください');
+    document.getElementById('afId').focus();
+    return;
+  }
+  if (!name) {
+    showToast('アプリ名を入力してください');
+    document.getElementById('afName').focus();
+    return;
+  }
+  const dup = appsRegistry.find(a => a && a.id === id && a.id !== editingAppId);
+  if (dup) {
+    showToast('ID「' + id + '」は既に使われています');
+    document.getElementById('afId').focus();
+    return;
+  }
+  const entry = normalizeApp({
+    id: id,
+    name: name,
+    tagline: document.getElementById('afTagline').value.trim(),
+    icon: document.getElementById('afIcon').value.trim() || '📦',
+    status: document.getElementById('afStatus').value,
+    version: document.getElementById('afVersion').value.trim(),
+    platforms: document.getElementById('afPlatforms').value.trim(),
+    features: document.getElementById('afFeatures').value
+      .split('\n').map(s => s.trim()).filter(Boolean),
+    page: document.getElementById('afPage').value.trim()
+  });
+  if (!entry) { showToast('入力内容が正しくありません'); return; }
+
+  const idx = appsRegistry.findIndex(a => a && a.id === editingAppId);
+  if (idx >= 0) {
+    const oldId = appsRegistry[idx].id;
+    appsRegistry[idx] = entry;
+    if (oldId !== id) {
+      /* フィルタ選択を新しい ID へ引き継ぐ */
+      const filterSel = document.getElementById('appFilter');
+      if (filterSel && filterSel.value === oldId) filterSel.value = id;
+    }
+    showToast('アプリを更新しました');
+  } else {
+    appsRegistry.push(entry);
+    showToast('アプリを追加しました');
+  }
+  saveAppsStore(appsRegistry);
+  closeAppForm();
+  refreshAfterAppsChange();
+});
+
+/* ---- data/apps.js の書き出し（ダウンロード＋クリップボード） ---- */
+const APPS_JS_HEADER =
+  '/* ============================================================\n' +
+  '   アプリレジストリ — 複数アプリ公開ポータル\n' +
+  '   ------------------------------------------------------------\n' +
+  '   アプリを追加する手順:\n' +
+  '     1. このファイルの APPS に 1 エントリ追加する\n' +
+  '     2. apps/<id>.html のページ（詳細＋お問い合わせフォーム）を作る\n' +
+  '   index.html がこの一覧をそのままカード描画します。\n' +
+  '   （素の JS。ES modules / import は使わない — file:// でも動く）\n' +
+  '   ============================================================ */';
+
+function generateAppsJsSource() {
+  const list = appsRegistry.slice();
+  /* JSON.stringify で日本語をエスケープせず、既存ファイルの体裁に合わせる */
+  let body = JSON.stringify(list, null, 2);
+  body = body.replace(/"([A-Za-z_$][A-Za-z0-9_$]*)"\s*:/g, '$1:');
+  body = body.replace(/"((?:[^"\\]|\\.)*)"/g, (m, inner) =>
+    (inner.indexOf("'") < 0 && inner.indexOf('\\') < 0) ? "'" + inner + "'" : m);
+  return APPS_JS_HEADER + '\nconst APPS = ' + body + ';\n';
+}
+
+function downloadTextFile(filename, text) {
+  const blob = new Blob([text], { type: 'text/javascript;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+document.getElementById('exportAppsBtn').addEventListener('click', function () {
+  if (!appsRegistry.length) {
+    showToast('書き出すアプリがありません');
+    return;
+  }
+  const src = generateAppsJsSource();
+  document.getElementById('exportPreview').value = src;
+  /* 1) ダウンロード */
+  downloadTextFile('apps.js', src);
+  /* 2) クリップボードへコピー */
+  copyText(src)
+    .then(() => showToast('apps.js をダウンロードし、クリップボードにもコピーしました'))
+    .catch(() => showToast('apps.js をダウンロードしました（コピーは失敗）'));
+});
+
+/* ---- data/apps.js から再読込 ---- */
+document.getElementById('appReloadBtn').addEventListener('click', function () {
+  fetchAppsJsSource()
+    .then(text => {
+      const parsed = parseAppsJs(text);
+      if (!parsed) throw new Error('parse failed');
+      appsRegistry = parsed;
+      saveAppsStore(appsRegistry);
+      closeAppForm();
+      refreshAfterAppsChange();
+      showToast('data/apps.js を読み込みました');
+    })
+    .catch(err => {
+      showToast('data/apps.js を読み込めませんでした（' + err.message + '）');
+    });
+});
+
+/* ---- 発行フォームの「対象アプリ」---- */
+function renderIssAppOptions(preferred) {
+  const sel = document.getElementById('issApp');
+  if (!sel) return;
+  const keep = preferred || sel.value;
+  let opts = appsRegistry.map(a =>
+    '<option value="' + escapeHtml(a.id) + '">' +
+    escapeHtml((a.icon ? a.icon + ' ' : '') + a.name) + '</option>');
+  if (!opts.length) opts = ['<option value="kintai">勤怠管理</option>'];
+  sel.innerHTML = opts.join('');
+  if (keep) {
+    sel.value = keep;
+    if (sel.value !== keep && appsRegistry.length) sel.selectedIndex = 0;
+  }
+}
 
 /* =====================================================================
    Private key handling
@@ -592,6 +1180,10 @@ document.getElementById('issueForm').addEventListener('submit', async function (
   const company = document.getElementById('issCompany').value.trim();
   if (!company) { showToast('会社名を入力してください'); return; }
 
+  const appId = document.getElementById('issApp').value;
+  const appEntry = appsRegistry.find(a => a && a.id === appId) || null;
+  const appNameForIssue = appEntry ? appEntry.name : '';
+
   const expiryInput = document.getElementById('issExpiry').value.trim();
   const expiry = parseExpiryInput(expiryInput);
   if (expiry === undefined) {
@@ -615,12 +1207,14 @@ document.getElementById('issueForm').addEventListener('submit', async function (
     const meta = document.getElementById('keyMeta');
     meta.style.display = 'block';
     meta.innerHTML =
-      '会社名: <b>' + escapeHtml(company) + '</b> ／ 発行日: <b>' + payloadObj.i + '</b> ／ ' +
+      '会社名: <b>' + escapeHtml(company) + '</b> ／ ' +
+      '対象アプリ: <b>' + escapeHtml(appNameForIssue || '—') + '</b> ／ 発行日: <b>' + payloadObj.i + '</b> ／ ' +
       '有効期限: <b>' + (payloadObj.e ? payloadObj.e : '無期限') + '</b> ／ ID: <b>' + payloadObj.id + '</b>';
 
     /* Update matching application record */
     const list = loadApplications();
     let target = selectedNo ? list.find(a => a && a.no === selectedNo) : null;
+    if (!target) target = list.find(a => a && a.company === company && (a.app || '') === appId);
     if (!target) target = list.find(a => a && a.company === company);
     if (target) {
       target.status = 'キー発行済み';
@@ -632,9 +1226,22 @@ document.getElementById('issueForm').addEventListener('submit', async function (
     }
     renderApplications();
 
+    /* 発行履歴を保存（localStorage: kobo_issued） */
+    const issued = loadIssuedHistory();
+    issued.push({
+      no: (target && target.no) || selectedNo || '',
+      app: appId || '',
+      appName: appNameForIssue || (target && target.appName) || '',
+      company: company,
+      key: license,
+      at: new Date().toISOString()
+    });
+    saveIssuedHistory(issued);
+
     okBanner.innerHTML = 'ライセンスキーを発行しました。' +
-      (target ? ' 申込 <b>' + escapeHtml(target.no) + '</b> を「キー発行済み」に更新しました。'
-              : ' 対象の申込は見つからなかったため、一覧には記録されていません。');
+      (target ? ' お問い合わせ <b>' + escapeHtml(target.no) + '</b> を「キー発行済み」に更新しました。'
+              : ' 対象のお問い合わせは見つからなかったため、一覧には記録されていません。');
+    okBanner.innerHTML += ' 発行履歴は <code>' + ISSUED_STORE_KEY + '</code> に保存しました。';
     okBanner.style.display = 'block';
     showToast('発行しました');
     box.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -686,6 +1293,9 @@ let inited = false;
 function initAdmin() {
   if (inited) { renderApplications(); return; }
   inited = true;
+
+  /* アプリ管理（kobo_apps）の初期投入: localStorage → fetch('data/apps.js') → デフォルト1件 */
+  seedAppsRegistry();
 
   /* WebCrypto availability */
   if (!(window.crypto && crypto.subtle)) {

@@ -37,13 +37,13 @@ const CONTACT_EMAIL = 'info@example.com';
         <h1>業務を、もっとラクに。</h1>
         <p class="lead">
           アプリ工房は、日々の業務を軽くするデスクトップアプリを無料で公開しているポータルです。
-          気になったアプリから詳細ページをのぞいて、そのまま申し込めます。
+          気になったアプリから詳細ページをのぞいて、そのままお問い合わせいただけます。
         </p>
         <div class="hero-cta">
           <a href="#apps" class="btn btn-primary">アプリを見る</a>
           <a href="#contact" class="btn btn-ghost">お問い合わせ</a>
         </div>
-        <p class="hero-note"><strong>すべて無料</strong> ／ データは端末内に保存 ／ 申込は各アプリのページから</p>
+        <p class="hero-note"><strong>すべて無料</strong> ／ データは端末内に保存 ／ お問い合わせは各アプリのページから</p>
       </div>
       <div class="hero-panel">
         <h3>アプリ工房の特徴</h3>
@@ -64,7 +64,7 @@ const CONTACT_EMAIL = 'info@example.com';
     <div class="container">
       <div class="sec-head">
         <h2>アプリ一覧</h2>
-        <p>公開中のアプリの詳細ページから、そのままお申し込みいただけます。</p>
+        <p>公開中のアプリの詳細ページから、そのままお問い合わせいただけます。</p>
       </div>
       <div class="app-grid" id="appGrid">
         <!-- data/apps.js の APPS から描画されます -->
@@ -104,7 +104,7 @@ const CONTACT_EMAIL = 'info@example.com';
           <a class="btn btn-ghost" href="#apps">アプリ一覧へ戻る</a>
         </div>
         <p style="font-size:13px;margin-top:16px;">
-          各アプリの申込フォームは、アプリ詳細ページにあります。
+          各アプリのお問い合わせフォームは、アプリ詳細ページにあります。
         </p>
       </div>
     </div>
@@ -133,10 +133,14 @@ const CONTACT_EMAIL = 'info@example.com';
   <div class="container">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
       <div>
-        <h2 style="margin:0 0 4px;font-size:24px;">申込一覧</h2>
-        <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">この端末の localStorage に保存された申し込みです。</p>
+        <h2 style="margin:0 0 4px;font-size:24px;">お問い合わせ一覧</h2>
+        <p style="margin:0;font-size:13.5px;color:var(--ink-soft);">この端末の localStorage に保存されたお問い合わせです。</p>
       </div>
-      <div style="display:flex;gap:10px;">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <label class="list-filter">
+          <span>アプリ</span>
+          <select id="appsAppFilter"><option value="">すべて</option></select>
+        </label>
         <button class="btn btn-ghost btn-sm" id="appsRefresh">更新</button>
         <a class="btn btn-primary btn-sm" href="#">トップへ戻る</a>
       </div>
@@ -145,12 +149,13 @@ const CONTACT_EMAIL = 'info@example.com';
       <table class="apps">
         <thead>
           <tr>
-            <th>申込番号</th><th>アプリ</th><th>会社名</th><th>担当者</th><th>申込日時</th><th>人数規模</th><th>状態</th><th>発行キー</th>
+            <th>お問い合わせ番号</th><th>アプリ</th><th>会社名</th><th>担当者</th><th>受付日時</th><th>人数規模</th><th>状態</th><th>発行キー</th>
           </tr>
         </thead>
         <tbody id="appsBody"></tbody>
       </table>
-      <div class="empty" id="appsEmpty" style="display:none;">申込データはまだありません。</div>
+      <div class="empty" id="appsEmpty" style="display:none;">お問い合わせデータはまだありません。</div>
+      <div class="empty" id="appsFilteredEmpty" style="display:none;">このアプリのお問い合わせはまだありません。</div>
     </div>
     <p style="font-size:12.5px;color:var(--ink-soft);margin-top:14px;">
       管理者（オペレーター）用のライセンス発行は <a href="admin.html">admin.html</a> から行います。
@@ -215,8 +220,8 @@ function renderAppCards() {
     const badgeClass = published ? '' : ' dev';
     const chips = (a.features || []).map(f => '<span class="chip">' + escapeHtml(f) + '</span>').join('');
     const action = published
-      ? '<a class="btn btn-primary btn-sm" href="' + escapeHtml(a.page || '#') + '">詳細・申込へ</a>'
-      : '<button class="btn btn-primary btn-sm" type="button" disabled>詳細・申込へ</button>';
+      ? '<a class="btn btn-primary btn-sm" href="' + escapeHtml(a.page || '#') + '">詳細・お問い合わせへ</a>'
+      : '<button class="btn btn-primary btn-sm" type="button" disabled>詳細・お問い合わせへ</button>';
     return '<article class="app-card' + (published ? '' : ' disabled') + '">' +
       '<div class="app-card-head">' +
         '<div class="app-icon">' + escapeHtml(a.icon || '📦') + '</div>' +
@@ -241,17 +246,54 @@ document.getElementById('contactMail').textContent = CONTACT_EMAIL;
 document.getElementById('contactMailto').href =
   'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent('【アプリ工房】お問い合わせ');
 
-/* ---------- Applications table rendering ---------- */
+/* ---------- Applications table rendering (with app filter) ---------- */
+function currentAppFilter() {
+  const el = document.getElementById('appsAppFilter');
+  return el ? el.value : '';
+}
+function renderAppFilterOptions() {
+  const sel = document.getElementById('appsAppFilter');
+  if (!sel) return;
+  const keep = sel.value;
+  const seen = {};
+  const options = ['<option value="">すべて</option>'];
+  loadApplications().forEach(a => {
+    if (!a) return;
+    const id = a.app || '';
+    const name = a.appName || '勤怠管理';
+    const key = id + '|' + name;
+    if (seen[key]) return;
+    seen[key] = 1;
+    options.push('<option value="' + escapeHtml(id) + '">' + escapeHtml(name) + '</option>');
+  });
+  sel.innerHTML = options.join('');
+  sel.value = keep;
+  if (sel.value !== keep) sel.value = '';
+}
+
 function renderApplications() {
   const body = document.getElementById('appsBody');
   const empty = document.getElementById('appsEmpty');
-  const list = loadApplications();
-  if (!list.length) {
+  const filteredEmpty = document.getElementById('appsFilteredEmpty');
+  renderAppFilterOptions();
+  const filter = currentAppFilter();
+  const all = loadApplications();
+  const list = filter
+    ? all.filter(a => a && (a.app || '') === filter)
+    : all;
+  if (!all.length) {
     body.innerHTML = '';
     empty.style.display = '';
+    if (filteredEmpty) filteredEmpty.style.display = 'none';
     return;
   }
   empty.style.display = 'none';
+  if (!list.length) {
+    body.innerHTML = '';
+    if (filteredEmpty) filteredEmpty.style.display = '';
+    return;
+  }
+  if (filteredEmpty) filteredEmpty.style.display = 'none';
   body.innerHTML = list.slice().reverse().map(a => {
     const issued = a.status === 'キー発行済み';
     const key = a.licenseKey ? escapeHtml(a.licenseKey.slice(0, 22)) + '…' : '—';
@@ -294,6 +336,7 @@ document.getElementById('navMenu').addEventListener('click', e => {
 });
 
 document.getElementById('appsRefresh').addEventListener('click', renderApplications);
+document.getElementById('appsAppFilter').addEventListener('change', renderApplications);
 
 renderAppCards();
 routeByHash();

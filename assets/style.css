@@ -251,6 +251,15 @@ table.company th { width: 34%; background: #f0f3f8; font-weight: 700; white-spac
 
 /* ---------- Applications view (hidden hash view) ---------- */
 #applications-view { display: none; padding: 48px 0 72px; }
+.list-filter {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 13px; font-weight: 700; color: var(--ink-soft);
+}
+.list-filter select {
+  font-family: inherit; font-size: 13.5px; font-weight: 600; color: var(--ink);
+  padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff;
+}
+.list-filter select:focus { outline: 2px solid #c7d6fe; border-color: var(--primary); }
 .table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
 table.apps { width: 100%; border-collapse: collapse; min-width: 760px; }
 table.apps th, table.apps td { padding: 12px 14px; font-size: 14px; border-bottom: 1px solid var(--line); text-align: left; }
