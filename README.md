@@ -12,7 +12,8 @@ site/
 ├── assets/
 │   └── style.css           共通スタイル（index / 各アプリページが共通参照）
 ├── apps/
-│   └── kintai.html         「勤怠管理」の詳細ページ＋お問い合わせフォーム
+│   ├── kintai.html         「勤怠管理」の詳細ページ＋お問い合わせフォーム
+│   └── gyomu.html          「会社業務支援システム」の詳細ページ＋お問い合わせフォーム
 ├── data/
 │   ├── apps.js             アプリレジストリ（APPS 一覧。一覧カードの描画元）
 │   ├── license_private.pem 秘密鍵（RSA-2048 / PKCS#8）★絶対に公開しない
@@ -241,6 +242,7 @@ node tools/issue-license.mjs --verify "KI1...." --public-key path/to/public.pem
 |---|---|
 | `index.html` | ポータルトップ（ヒーロー・アプリ一覧カード・今後のアプリ・お問い合わせ）＋ `#applications` 申込一覧 |
 | `apps/kintai.html` | 「勤怠管理」の詳細ページ（機能・対応環境・初期設定）＋申込フォーム |
+| `apps/gyomu.html` | 「会社業務支援システム」の詳細ページ（機能・対応環境・初期設定）＋申込フォーム |
 | `assets/style.css` | 共通スタイル（CSS変数・レイアウト・フォーム・申込一覧テーブル等） |
 | `data/apps.js` | アプリレジストリ（`APPS`。追加はここに1エントリ） |
 | `admin.html` | オペレーター管理画面（パスワードゲート・ライセンス発行・申込一覧） |

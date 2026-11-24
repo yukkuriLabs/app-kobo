@@ -19,6 +19,18 @@ const APPS = [
     features: ['打刻・月次タイムカード', 'CSV/Excel出力', '祝日マスタ', '月次締め', 'ライセンス認証'],
     page: 'apps/kintai.html',
     download: 'https://github.com/yukkuriLabs/app-kobo/releases/download/v1.1.0/kintai-1.1.0-setup.exe'
+  },
+  {
+    id: 'gyomu',
+    name: '会社業務支援システム',
+    tagline: '申請承認・案件タスク・日報をひとつに',
+    icon: '🏢',
+    status: '公開中',
+    version: '1.0.0',
+    platforms: 'Windows 10 / 11',
+    features: ['申請・承認ワークフロー', '案件・タスク管理', '日報', '部門・メンバー管理', '監査ログ', 'CSV/Excel出力', 'NAS保存先対応'],
+    page: 'apps/gyomu.html',
+    download: 'https://github.com/yukkuriLabs/app-kobo/releases/download/gyomu-v1.0.0/gyomu-1.0.0-setup.exe'
   }
   // 今後のアプリはここに追記
 ];
